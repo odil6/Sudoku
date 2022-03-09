@@ -3,11 +3,10 @@ import numpy as np
 import cv2
 import pickle
 from PIL import Image
-import pytesseract
 
 height, width = 450, 450
 
-pickle_in = open("/Users/ohaddvir/PycharmProjects/pythonProject/Soduku/model_train.p", 'rb')
+pickle_in = open("./model_train.p", 'rb')
 model = pickle.load(pickle_in)
 
 
@@ -60,27 +59,64 @@ def sort_points(points):
     return my_points_new
 
 
+def crop_corners(image, number):
+    x, y = 6, 4
+    w, h = 28, 28
+
+        # upper bold line
+    if int(number / 9) % 3 == 0:
+        x = 7
+
+        # left bold line
+    if number % 9 == 0:
+        y = 6
+
+        # right bold line
+    if number % 9 == 8:
+        w = 26
+
+        # lower bold line
+    if int(number / 9) % 3 == 2:
+        h = 26
+
+    # x is top line!
+    # y is left line!
+    # w is right line!
+    # h is lower line!
+    return image[x:h, y:w]
+
 def get_numbers(split):
     numbers = []
+    # print('len(split):', len(split))
     for i in range(0, len(split)):
+    # for i in range(0, 11):
         image = Image.fromarray(split[i])
         image = np.asarray(image)
-        image1 = image
         image = cv2.resize(image, (32, 32))
 
-        image = image[4:28, 4:28]
+
+        # image = image[4:28, 4:28]
+        image = crop_corners(image, i)
 
         image = cv2.resize(image, (32, 32))
-        image = pre_process_block(image)
+
+        # image = pre_process_block(image)
 
         # addition -> to sharpen the number!
-        image = cv2.GaussianBlur(image, (1, 3), 5)
+        # image = cv2.GaussianBlur(image, (1, 3), 5)
+
+        # if i == 2:
+        #     plt.imshow(image)
+        #     plt.title('I = ' + str(i))
+        #     plt.show()
 
         image = image.reshape(1, 32, 32, 1)
+
         digit = model.predict(image)
         ind = np.argmax(digit[0])
         probability = np.amax(digit)
-        if probability < 0.93:
+        # print(ind, ' sure at-> ', probability)
+        if probability < 0.95:
             ind = 0
 
         numbers.append(ind)
@@ -135,7 +171,7 @@ def check(nums):
 
 
 if __name__ == '__main__':
-    path = "./s1.png"
+    path = "./s2.jpeg"
     i_img = cv2.imread(path)
     i_img = cv2.resize(i_img, (height, width))
     threshold = pre_process(i_img)
@@ -148,7 +184,6 @@ if __name__ == '__main__':
 
     # biggest will have 4 points (x,y) which in them is the biggest area marked by the app!
     biggest, maxArea = get_biggest_contour(i_contours)
-    # print(biggest)
     if biggest.size != 0:
         biggest = sort_points(biggest)
         cv2.drawContours(img_big_contour, biggest, -1, (0, 255, 0), 10)
@@ -157,41 +192,21 @@ if __name__ == '__main__':
         matrix = cv2.getPerspectiveTransform(pts1, pts2)  # GER
         imgWarpColored = cv2.warpPerspective(i_img, matrix, (width, height))
         imgWarpColored = cv2.cvtColor(imgWarpColored, cv2.COLOR_BGR2GRAY)
-        # plt.imshow(imgWarpColored)
-        # plt.show()
+
+        plt.imshow(imgWarpColored)
+        plt.title('The wrapped picture')
+        plt.show()
 
         i_split_board = split_board(imgWarpColored)
+        print(type(i_split_board))
 
         actual_numbers = get_numbers(i_split_board)
 
-        image = show_numbers(img_big_contour, actual_numbers)
-
-        # actual_numbers_P = np.array_split(actual_numbers, 9)
-        # for i in actual_numbers_P:
-        #     print(i)
+        image = show_numbers(imgWarpColored, actual_numbers)
 
         plt.title("final colide")
-        plt.imshow(img_big_contour)
+        plt.imshow(imgWarpColored)
         plt.show()
-        # cv2.imshow('sample image', img_big_contour)
-        # cv2.waitKey(0)  # waits until a key is pressed
 
-        # cv2.destroyAllWindows()
+        # check(actual_numbers)
 
-        check(actual_numbers)
-
-        # count = 0
-        # ans_s2 = [0, 5, 0, 9, 8, 0, 0, 6, 0,
-        #           2, 0, 0, 0, 0, 0, 0, 0, 5,
-        #           0, 0, 1, 0, 0, 7, 0, 0, 0,
-        #           5, 0, 0, 2, 0, 0, 9, 0, 0,
-        #           4, 0, 0, 0, 0, 0, 0, 0, 3,
-        #           0, 0, 3, 0, 0, 4, 0, 0, 2,
-        #           0, 0, 0, 7, 0, 0, 3, 0, 0,
-        #           8, 0, 0, 0, 0, 0, 0, 0, 1,
-        #           0, 9, 0, 0, 4, 8, 0, 7, 0]
-        # for i in range(0, len(ans_s2)):
-        #     if int(actual_numbers[i]) != int(ans_s2[i]):
-        #         print(f'index {i}, got {actual_numbers[i]}, instead of {ans_s2[i]}')
-        #         count += 1
-        # print('wrong -', count)
