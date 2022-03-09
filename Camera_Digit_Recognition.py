@@ -11,7 +11,7 @@ cap = cv2.VideoCapture(0)
 cap.set(600, width*10)
 cap.set(800, height*10)
 
-pickle_in = open("/Users/ohaddvir/PycharmProjects/pythonProject/Soduku/model_train.p", 'rb')
+pickle_in = open("./model_train.p", 'rb')
 model = pickle.load(pickle_in)
 
 
