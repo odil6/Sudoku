@@ -292,30 +292,8 @@ if __name__ == '__main__':
         numbers_to_solve = convert_to_np(actual_numbers)
         print('b4:')
         print(np.matrix(numbers_to_solve))
-        # print('after:')
-        # print(np.matrix(Sudoku_Solver.solve(numbers_to_solve)))
 
         gui_run(numbers_to_solve)
         pygame.quit()
-
-        # board = [
-        #     [7, 8, 0, 4, 0, 0, 1, 2, 0],
-        #     [6, 0, 0, 0, 7, 5, 0, 0, 9],
-        #     [0, 0, 0, 6, 0, 1, 0, 7, 8],
-        #     [0, 0, 7, 0, 4, 0, 2, 6, 0],
-        #     [0, 0, 1, 0, 5, 0, 9, 3, 0],
-        #     [9, 0, 4, 0, 6, 0, 0, 0, 5],
-        #     [0, 7, 0, 3, 0, 0, 0, 1, 2],
-        #     [1, 2, 0, 0, 0, 7, 4, 0, 0],
-        #     [0, 4, 9, 2, 0, 6, 0, 0, 7]
-        # ]
-        # gui_run(board)
-
-
-        # solver = Solver(board)
-        # print(np.matrix(solver.get_grid()))
-        # print('get_solution:')
-        # print(np.matrix(solver.get_solution()))
-
 
 
