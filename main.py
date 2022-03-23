@@ -3,6 +3,11 @@ import numpy as np
 import cv2
 import pickle
 from PIL import Image
+from Sudoku_Solver import Solver
+import GUI
+import pygame
+import time
+pygame.font.init()
 
 height, width = 450, 450
 
@@ -170,6 +175,79 @@ def check(nums):
     print('wrong -', count)
 
 
+def convert_to_np(grid):
+    ans = []
+    for i in range(0, 9):
+        r = grid[i*9: (i+1)*9]
+        ans.append(r)
+    return ans
+
+
+def gui_run(b):
+    win = pygame.display.set_mode((540, 600))
+    pygame.display.set_caption("Sudoku")
+    board = GUI.Grid(b, 9, 9, 540, 540)
+    key = None
+    run = True
+    start = time.time()
+    strikes = 0
+    while run:
+
+        play_time = round(time.time() - start)
+
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                run = False
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_1:
+                    key = 1
+                if event.key == pygame.K_2:
+                    key = 2
+                if event.key == pygame.K_3:
+                    key = 3
+                if event.key == pygame.K_4:
+                    key = 4
+                if event.key == pygame.K_5:
+                    key = 5
+                if event.key == pygame.K_6:
+                    key = 6
+                if event.key == pygame.K_7:
+                    key = 7
+                if event.key == pygame.K_8:
+                    key = 8
+                if event.key == pygame.K_9:
+                    key = 9
+                if event.key == pygame.K_DELETE:
+                    board.clear()
+                    key = None
+                if event.key == pygame.K_RETURN:
+                    i, j = board.selected
+                    if board.cubes[i][j].temp != 0:
+                        if board.place(board.cubes[i][j].temp):
+                            print("Success")
+                        else:
+                            print("Wrong")
+                            strikes += 1
+                        key = None
+
+                        if board.is_finished():
+                            print("Game over")
+                            run = False
+
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                pos = pygame.mouse.get_pos()
+                clicked = board.click(pos)
+                if clicked:
+                    board.select(clicked[0], clicked[1])
+                    key = None
+
+        if board.selected and key != None:
+            board.sketch(key)
+
+        GUI.redraw_window(win, board, play_time, strikes)
+        pygame.display.update()
+
+
 if __name__ == '__main__':
     path = "./s2.jpeg"
     i_img = cv2.imread(path)
@@ -200,6 +278,7 @@ if __name__ == '__main__':
         i_split_board = split_board(imgWarpColored)
         print(type(i_split_board))
 
+        # actual_numbers - holds the answer as List of Lists.
         actual_numbers = get_numbers(i_split_board)
 
         image = show_numbers(imgWarpColored, actual_numbers)
@@ -208,5 +287,35 @@ if __name__ == '__main__':
         plt.imshow(imgWarpColored)
         plt.show()
 
-        # check(actual_numbers)
+        # converting the list representation of the board to a np list.
+        # Then send it to Solver in order to get the solution
+        numbers_to_solve = convert_to_np(actual_numbers)
+        print('b4:')
+        print(np.matrix(numbers_to_solve))
+        # print('after:')
+        # print(np.matrix(Sudoku_Solver.solve(numbers_to_solve)))
+
+        gui_run(numbers_to_solve)
+        pygame.quit()
+
+        # board = [
+        #     [7, 8, 0, 4, 0, 0, 1, 2, 0],
+        #     [6, 0, 0, 0, 7, 5, 0, 0, 9],
+        #     [0, 0, 0, 6, 0, 1, 0, 7, 8],
+        #     [0, 0, 7, 0, 4, 0, 2, 6, 0],
+        #     [0, 0, 1, 0, 5, 0, 9, 3, 0],
+        #     [9, 0, 4, 0, 6, 0, 0, 0, 5],
+        #     [0, 7, 0, 3, 0, 0, 0, 1, 2],
+        #     [1, 2, 0, 0, 0, 7, 4, 0, 0],
+        #     [0, 4, 9, 2, 0, 6, 0, 0, 7]
+        # ]
+        # gui_run(board)
+
+
+        # solver = Solver(board)
+        # print(np.matrix(solver.get_grid()))
+        # print('get_solution:')
+        # print(np.matrix(solver.get_solution()))
+
+
 
